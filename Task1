@@ -1,0 +1,73 @@
+class Product:
+    def _init_(self, name, price):
+        self.name = name
+        self.price = price
+
+class ShoppingCart:
+    def _init_(self):
+        self.products = {}
+        self.discount_rules = []
+        self.fees = {
+            "gift_wrap": 1,
+            "shipping_fee": 5,
+            "units_per_package": 10
+        }
+
+    def add_product(self, product, quantity, is_wrapped):
+        self.products[product.name] = {
+            "quantity": quantity,
+            "price": product.price,
+            "is_wrapped": is_wrapped
+        }
+
+    def apply_discount(self):
+        total_quantity = sum(item["quantity"] for item in self.products.values())
+        for rule in self.discount_rules:
+            if rule["condition"](total_quantity, self.products):
+ rule["apply"](self)
+
+    def calculate_subtotal(self):
+        return sum(item["quantity"] * item["price"] for item in self.products.values())
+
+    def calculate_discount(self):
+        return sum(item["discount"] for item in self.products.values() if "discount" in item)
+
+    def calculate_fees(self):
+        wrap_fee = sum(item["quantity"] * self.fees["gift_wrap"] for item in self.products.values() if item["is_wrapped"])
+        shipping_fee = (total_quantity // self.fees["units_per_package"]) * self.fees["shipping_fee"]
+        return wrap_fee, shipping_fee
+
+    def calculate_total(self):
+        subtotal = self.calculate_subtotal()
+        discount = self.calculate_discount()
+        wrap_fee, shipping_fee = self.calculate_fees()
+        total = subtotal - discount + wrap_fee + shipping_fee
+        return subtotal, discount, wrap_fee, shipping_fee, total
+
+
+# Example usage:
+product_a = Product("Product A", 20)
+product_b = Product("Product B", 40)
+product_c = Product("Product C", 50)
+cart = ShoppingCart()
+cart.add_product(product_a, 5, True)
+cart.add_product(product_b, 12, False)
+cart.add_product(product_c, 10, True)
+
+cart.discount_rules = [
+    {"condition": lambda total_quantity, products: total_quantity > 30,
+     "apply": lambda cart: cart.products["Product C"].update({"discount": cart.products["Product C"]["quantity"] * product_c.price * 0.5})},
+    # Add more discount rules as needed
+]
+
+cart.apply_discount()
+
+subtotal, discount, wrap_fee, shipping_fee, total = cart.calculate_total()
+
+print("Subtotal:", subtotal)
+for product_name, details in cart.products.items():
+    print(f"{product_name}: {details['quantity']} x ${details['price']} = ${details['quantity'] * details['price']}")
+print("Discount Applied:", discount)
+print("Gift Wrap Fee:", wrap_fee)
+print("Shipping Fee:", shipping_fee)
+print("Total:", total)
