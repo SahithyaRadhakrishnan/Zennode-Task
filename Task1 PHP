@@ -1,0 +1,90 @@
+class Product
+{
+    public $name;
+    public $price;
+
+    public function __construct($name, $price)
+    {
+        $this->name = $name;
+        $this->price = $price;
+    }
+}
+
+class ShoppingCart
+{
+    public $products = [];
+    public $subtotal = 0;
+    public $discountName = "";
+    public $discountAmount = 0;
+    public $shippingFee = 0;
+    public $giftWrapFee = 0;
+    public $total = 0;
+
+    public function addProduct($product, $quantity, $giftWrap)
+    {
+        $totalAmount = $product->price * $quantity;
+        $this->subtotal += $totalAmount;
+
+        if ($quantity > 10) {
+            $this->applyDiscount("bulk_5_discount", $totalAmount);
+        }
+        if ($quantity > 20) {
+            $this->applyDiscount("bulk_10_discount", $totalAmount)
+  }
+
+        $this->calculateFees($quantity, $giftWrap);
+        $this->calculateTotal();
+
+        echo "{$product->name}: {$quantity} units - $totalAmount\n";
+    }
+
+    public function applyDiscount($discountName, $totalAmount)
+    {
+        $discounts = [
+            "flat_10_discount" => 10,
+            "bulk_5_discount" => 0.05,
+            "bulk_10_discount" => 0.10,
+            "tiered_50_discount" => 0.50,
+        ];
+
+        if (array_key_exists($discountName, $discounts)) {
+            $discountPercentage = $discounts[$discountName];
+            $discountValue = $totalAmount * $discountPercentage;
+            if ($discountValue > $this->discountAmount) {
+                $this->discountName = $discountName;
+                $this->discountAmount = $discountValue;
+            }
+        }
+    }
+ public function calculateFees($quantity, $giftWrap)
+    {
+        $this->shippingFee = (int)($quantity / 10) * 5;
+        if ($giftWrap) {
+            $this->giftWrapFee = $quantity * 1;
+        }
+    }
+
+    public function calculateTotal()
+    {
+        $this->total = $this->subtotal - $this->discountAmount + $this->shippingFee + $this->giftWrapFee;
+    }
+}
+
+// Example usage
+$productA = new Product("Product A", 20);
+$productB = new Product("Product B", 40);
+$productC = new Product("Product C", 50);
+
+$cart = new ShoppingCart();
+
+$quantityA = readline("Enter quantity for Product A: ");
+$giftWrapA = strtolower(readline("Is Product A a gift? (yes/no): ")) === "yes";
+$cart->addProduct($productA, $quantityA, $giftWrapA);
+
+$quantityB = readline("Enter quantity for Product B: ");
+$giftWrapB = strtolower(readline("Is Product B a gift? (yes/no): ")) === "yes";
+$cart->addProduct($productB, $quantityB, $giftWrapB);
+
+$quantityC = readline("Enter quantity for Product C: ");
+$giftWrapC = strtolower(readline("Is Product C a gift? (yes/no): ")) === "yes";
+$cart->addProduct($productC, $quantityC, $giftWrapC);
